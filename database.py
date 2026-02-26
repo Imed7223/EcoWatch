@@ -28,6 +28,8 @@ class SystemState(Base):
     id = Column(Integer, primary_key=True)
     last_update_requested = Column(DateTime, default=datetime.utcnow)
 
-engine = create_engine('sqlite:///ecommerce_tracker.db')
+URL_SUPABASE = "postgresql://Amina2022@&*@db.mmgujomlkpgkwgacjtae.supabase.co:5432/postgres"
+
+engine = create_engine(URL_SUPABASE)
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
