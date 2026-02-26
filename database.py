@@ -1,7 +1,7 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, ForeignKey, Boolean
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, ForeignKey, Boolean
+from sqlalchemy.orm import declarative_base, sessionmaker, relationship
+import streamlit as st
 
 Base = declarative_base()
 
@@ -10,7 +10,7 @@ class Product(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     url = Column(String, unique=True)
-    custom_selector = Column(String, nullable=True) # Nouveau champ
+    custom_selector = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
     history = relationship("PriceHistory", back_populates="product")
 
@@ -23,10 +23,12 @@ class PriceHistory(Base):
     in_stock = Column(Boolean)
     product = relationship("Product", back_populates="history")
 
+
 class SystemState(Base):
     __tablename__ = 'system_state'
     id = Column(Integer, primary_key=True)
     last_update_requested = Column(DateTime, default=datetime.utcnow)
+
 
 URL_SUPABASE = "postgresql://postgres:THdvmVeuQH97C8zn@db.mmgujomlkpgkwgacjtae.supabase.co:5432/postgres"
 
