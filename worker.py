@@ -1,9 +1,12 @@
 import time
 import sys
 from playwright.sync_api import sync_playwright
-# Importation de SystemState ajoutée ici
+from win10toast import ToastNotifier
 from database import Session, Product, PriceHistory, SystemState 
 from scraper_ecommerce import clean_price
+
+
+toaster = ToastNotifier() 
 
 def run_update_cycle():
     session = Session()
@@ -27,10 +30,9 @@ def run_update_cycle():
                     })
                     
                     print(f"Analyse en cours : {prod.name}...")
-                    # On attend que le contenu soit chargé
                     page.goto(prod.url, wait_until="domcontentloaded", timeout=60000)
                     
-                    # Pause de sécurité pour laisser le prix s'afficher (utile pour Amazon/Cdiscount)
+                    # Pause de sécurité
                     time.sleep(2)
 
                     # Sélecteurs automatiques
@@ -48,7 +50,26 @@ def run_update_cycle():
                     content = page.content()
                     in_stock = any(x in content for x in ["Ajouter au panier", "In stock", "En stock", "Disponible"])
                     
-                    # Sauvegarde
+                    # --- NOUVELLE LOGIQUE : DETECTION DE BAISSE ---
+                    # 1. Chercher le dernier prix en base avant d'ajouter le nouveau
+                    last_record = session.query(PriceHistory).filter(PriceHistory.product_id == prod.id).order_by(PriceHistory.timestamp.desc()).first()
+                    
+                    if last_record and 0 < price_val < last_record.price:
+                        diff = round(last_record.price - price_val, 2)
+                        print(f"💰 BAISSE DE PRIX DETECTEE : -{diff}€ sur {prod.name}")
+                        
+                        # 2. Envoyer la notification Windows (assure-toi que 'toaster' est initialisé)
+                        try:
+                            toaster.show_toast(
+                                "EcoWatch : Bonne affaire !",
+                                f"Le prix de {prod.name} a baissé de {diff}€ !\nNouveau prix : {price_val}€",
+                                duration=10,
+                                threaded=True
+                            )
+                        except NameError:
+                            print("⚠️ Toaster non configuré, notification impossible.")
+
+                    # 3. Sauvegarde normale
                     new_history = PriceHistory(product_id=prod.id, price=price_val, in_stock=in_stock)
                     session.add(new_history)
                     print(f"✅ {prod.name} mis à jour : {price_val}€")
@@ -63,6 +84,7 @@ def run_update_cycle():
         print(f"🔥 Erreur moteur : {e}")
     finally:
         session.close() # On ferme toujours la session pour libérer la base SQLite
+
 
 def main_loop():
     print("🚀 Moteur EcoWatch en veille intelligente...")
