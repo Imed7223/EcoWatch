@@ -1,0 +1,12 @@
+# Ignorer la base de données locale
+ecommerce_tracker.db
+
+# Ignorer les dossiers Python
+__pycache__/
+.env
+.venv
+env/
+venv/
+
+# Ignorer les dossiers Streamlit
+.streamlit/
