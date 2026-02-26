@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, ForeignKey, Boolean
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
 
@@ -28,7 +28,7 @@ class SystemState(Base):
     id = Column(Integer, primary_key=True)
     last_update_requested = Column(DateTime, default=datetime.utcnow)
 
-URL_SUPABASE = "postgresql://Amina2022@&*@db.mmgujomlkpgkwgacjtae.supabase.co:5432/postgres"
+URL_SUPABASE = "postgresql://postgres:THdvmVeuQH97C8zn@db.mmgujomlkpgkwgacjtae.supabase.co:5432/postgres"
 
 engine = create_engine(URL_SUPABASE)
 Base.metadata.create_all(engine)
