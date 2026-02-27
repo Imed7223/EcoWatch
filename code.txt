@@ -1,0 +1,5 @@
+.\lancer_EcoWatch.bat
+
+
+[postgres]
+url = "postgresql://postgres:THdvmVeuQH97C8zn@db.mmgujomlkpgkwgacjtae.supabase.co:5432/postgres"
