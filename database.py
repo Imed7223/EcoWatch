@@ -33,7 +33,11 @@ class SystemState(Base):
 if "postgres" in st.secrets:
     URL = st.secrets["postgres"]["url"]
 else:
-    URL = "postgresql://postgres:THdvmVeuQH97C8zn@db.mmgujomlkpgkwgacjtae.supabase.co:5432/postgres"
+    db_conf = st.secrets["postgres"]
+    URL = (
+        f"postgresql+psycopg2://{db_conf['user']}:{db_conf['password']}"
+        f"@{db_conf['host']}:{db_conf['port']}/{db_conf['dbname']}"
+    )
 
 engine = create_engine(URL, pool_pre_ping=True)
 try:
