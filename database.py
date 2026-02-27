@@ -29,20 +29,30 @@ class SystemState(Base):
     id = Column(Integer, primary_key=True)
     last_update_requested = Column(DateTime, default=datetime.utcnow)
 
-# ===== Connexion DB flexible (env var OU secrets) =====
-if "postgres" in st.secrets:
-    URL = st.secrets["postgres"]["url"]
-else:
-    db_conf = st.secrets["postgres"]
-    URL = (
-        f"postgresql+psycopg2://{db_conf['user']}:{db_conf['password']}"
-        f"@{db_conf['host']}:{db_conf['port']}/{db_conf['dbname']}"
-    )
+# ===== CONNEXION DB : 3 options prioritaires =====
+URL = os.getenv("DATABASE_URL")  # 1. Variable d'environnement
 
-engine = create_engine(URL, pool_pre_ping=True)
+if not URL and "postgres" in st.secrets:
+    postgres_config = st.secrets["postgres"]
+    if "url" in postgres_config:
+        URL = postgres_config["url"]  # 2. secrets.toml avec URL complète
+    elif all(key in postgres_config for key in ["user", "password", "host", "port", "dbname"]):
+        URL = (
+            f"postgresql+psycopg2://{postgres_config['user']}:{postgres_config['password']}"
+            f"@{postgres_config['host']}:{postgres_config['port']}/{postgres_config['dbname']}?sslmode=require"
+        )  # 3. secrets.toml avec config détaillée
+
+# Fallback Supabase si rien d'autre
+if not URL:
+    URL = "postgresql://postgres:THdvmVeuQH97C8zn@db.mmgujomlkpgkwgacjtae.supabase.co:5432/postgres"
+
+print(f"🔌 Using DB URL: {URL.split('@')[0]}@...")  # Debug partiel
+
+engine = create_engine(URL, pool_pre_ping=True, pool_recycle=300)
 try:
     Base.metadata.create_all(engine)
+    print("✅ Tables créées / vérifiées")
 except Exception as e:
-    print("En attente de connexion...")
+    print(f"⚠️ Tables: {e}")
 
-    Session = sessionmaker(bind=engine)
+Session = sessionmaker(bind=engine)

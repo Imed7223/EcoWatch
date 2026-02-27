@@ -91,31 +91,15 @@ with st.sidebar.form("add_form", clear_on_submit=True):
         if new_name and new_url:
             add_product(new_name, new_url)
 
-df = load_data()
-
-if not df.empty:
-    st.sidebar.markdown("---")
-    st.sidebar.header("🗑️ Gérer les produits")
-    list_to_manage = df['name'].unique()
-    prod_to_del = st.sidebar.selectbox("Sélectionner pour supprimer", list_to_manage)
-    if st.sidebar.button("Supprimer définitivement"):
-        delete_product(prod_to_del)
-
-st.sidebar.markdown("---")
-st.sidebar.header("🔍 Options de filtrage")
-
-# --- CONTENU PRINCIPAL ---
-st.title("📈 EcoWatch : Intelligence de Prix")
-
-# --- INDICATEUR DE CHARGEMENT (ASTUCE) ---
-session = Session()
-state = session.query(SystemState).first()
-if state:
-    # Si le dernier signal a moins de 30 secondes, on affiche un spinner
-    diff = (datetime.utcnow() - state.last_update_requested).total_seconds()
-    if diff < 30:
-        st.info("🔄 Le Worker est en train de scanner les prix... Les données apparaîtront dans quelques instants.")
-session.close()
+def load_data():
+    session = Session()
+    try:
+        query = session.query(Product, PriceHistory).join(PriceHistory).order_by(PriceHistory.timestamp).all()
+        data = [{"name": p.name, "price": ph.price, "timestamp": ph.timestamp, "in_stock": ph.in_stock} 
+                for p, ph in query]
+        return pd.DataFrame(data)
+    finally:
+        session.close()
 
 if not df.empty:
     selected_product = st.sidebar.selectbox("Produit à analyser", df['name'].unique())
