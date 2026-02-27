@@ -35,7 +35,7 @@ if "postgres" in st.secrets:
 else:
     URL = "postgresql://postgres:THdvmVeuQH97C8zn@db.mmgujomlkpgkwgacjtae.supabase.co:5432/postgres"
 
-engine = create_engine(URL_DB, pool_pre_ping=True)
+engine = create_engine(URL, pool_pre_ping=True)
 try:
     Base.metadata.create_all(engine)
 except Exception as e:
