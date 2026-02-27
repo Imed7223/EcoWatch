@@ -44,7 +44,8 @@ if not URL and "postgres" in st.secrets:
 
 # Fallback Supabase si rien d'autre
 if not URL:
-    URL = "postgresql://postgres:THdvmVeuQH97C8zn@db.mmgujomlkpgkwgacjtae.supabase.co:5432/postgres"
+    url = "postgresql://neondb_owner:npg_pAOsiX75YqxT@ep-odd-dream-alwki9my-pooler.c-3.eu-central-1.aws.neon.tech/%22postgres%22?sslmode=require&channel_binding=require"
+
 
 print(f"🔌 Using DB URL: {URL.split('@')[0]}@...")  # Debug partiel
 
