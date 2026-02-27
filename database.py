@@ -30,14 +30,15 @@ class SystemState(Base):
     last_update_requested = Column(DateTime, default=datetime.utcnow)
 
 # ===== Connexion DB flexible (env var OU secrets) =====
-URL_SUPABASE = "postgresql://postgres:THdvmVeuQH97C8zn@db.mmgujomlkpgkwgacjtae.supabase.co:5432/postgres"
+if "postgres" in st.secrets:
+    URL = st.secrets["postgres"]["url"]
+else:
+    URL = "postgresql://postgres:THdvmVeuQH97C8zn@db.mmgujomlkpgkwgacjtae.supabase.co:5432/postgres"
 
-engine = create_engine(
-URL_SUPABASE,
-pool_size=10,
-max_overflow=20,
-pool_recycle=300,
-pool_pre_ping=True
-)
-Base.metadata.create_all(engine)
-Session = sessionmaker(bind=engine)
+engine = create_engine(URL_DB, pool_pre_ping=True)
+try:
+    Base.metadata.create_all(engine)
+except Exception as e:
+    print("En attente de connexion...")
+
+    Session = sessionmaker(bind=engine)
